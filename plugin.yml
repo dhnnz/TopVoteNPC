@@ -1,0 +1,16 @@
+name: TopVoteNPC
+version: 1.0.0
+api: 4.0.0
+main: dhnnz\TopVoteNPC\Loader
+src-namespace-prefix: dhnnz\TopVoteNPC
+author: dhnnz
+website: https://github.com/dhnnz/TopVoteNPC
+
+commands:
+  topvote:
+    description: ""
+    permission: topvote.cmd
+
+permissions:
+  topvote.cmd:
+    default: op
