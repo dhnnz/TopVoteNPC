@@ -68,7 +68,7 @@ class Loader extends PluginBase implements Listener
         $this->saveResource("steve.json");
         $this->saveResource("steve.png");
 
-        if ($this->getVoters() == self::ERR_NO_KEY) {
+        if ($this->getVoters() === self::ERR_NO_KEY) {
             $this->getLogger()->critical("no server key");
             $this->getServer()->shutdown();
         }
@@ -204,6 +204,7 @@ class Loader extends PluginBase implements Listener
             1 => "§b#1 " . $topPlayerName . " §b- " . (int) $topVotes . " votes",
             2 => "§6#2 " . $topPlayerName . " §b- " . (int) $topVotes . " votes",
             3 => "§a#3 " . $topPlayerName . " §b- " . (int) $topVotes . " votes",
+            default => "§cUndefined Ranking"
         };
 
         $npc = new TopVoteEntity($player->getLocation(), $skin, $nbt);
@@ -232,6 +233,7 @@ class Loader extends PluginBase implements Listener
             1 => "§b#1 " . $topPlayerName . " §b- " . (int) $topVotes . " votes",
             2 => "§6#2 " . $topPlayerName . " §b- " . (int) $topVotes . " votes",
             3 => "§a#3 " . $topPlayerName . " §b- " . (int) $topVotes . " votes",
+            default => "§cUndefined Ranking"
         };
 
         if ($skin)
