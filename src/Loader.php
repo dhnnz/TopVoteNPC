@@ -3,7 +3,6 @@
 namespace dhnnz\TopVoteNPC;
 
 use dhnnz\TopVoteNPC\entities\TopVoteEntity;
-use dhnnz\TopVoteNPC\task\UpdateVote;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\entity\EntityDataHelper;
