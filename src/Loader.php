@@ -66,11 +66,8 @@ class Loader extends PluginBase implements Listener
         $this->saveResource("steve.json");
         $this->saveResource("steve.png");
 
-        if ($this->getVoters() === self::ERR_NO_KEY) {
-            $this->getLogger()->error("no server key");
-            $this->getServer()->getPluginManager()->disablePlugin($this);
-            return;
-        }
+        if ($this->getVoters() === self::ERR_NO_KEY)
+            $this->getLogger()->warning("no server key");
 
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         EntityFactory::getInstance()->register(TopVoteEntity::class, function ($world, $nbt): TopVoteEntity {
@@ -118,6 +115,12 @@ class Loader extends PluginBase implements Listener
             count($args) < 1
         )
             return false;
+
+        if ($this->getVoters() === self::ERR_NO_KEY) {
+            $sender->sendMessage("no server key");
+            $this->getLogger()->warning("no server key");
+            return false;
+        }
 
         switch ($args[0]) {
             case 'spawn':
