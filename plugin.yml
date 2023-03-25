@@ -9,8 +9,8 @@ website: https://github.com/dhnnz/TopVoteNPC
 commands:
   topvote:
     description: ""
-    permission: topvote.cmd
+    permission: topvotenpc.topvote.cmd
 
 permissions:
-  topvote.cmd:
+  topvotenpc.topvote.cmd:
     default: op

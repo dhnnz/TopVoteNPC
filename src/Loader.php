@@ -68,39 +68,38 @@ class Loader extends PluginBase implements Listener
         $this->saveResource("steve.png");
 
         if ($this->getVoters() === self::ERR_NO_KEY) {
-            $this->getLogger()->critical("no server key");
-            $this->getServer()->shutdown();
+            $this->getLogger()->error("no server key");
+            $this->getServer()->getPluginManager()->disablePlugin($this);
+            return;
         }
 
-        if ($this->getServer()->getPluginManager()->isPluginEnabled($this)) {
-            $this->getServer()->getPluginManager()->registerEvents($this, $this);
-            EntityFactory::getInstance()->register(TopVoteEntity::class, function ($world, $nbt): TopVoteEntity {
-                return new TopVoteEntity(EntityDataHelper::parseLocation($nbt, $world), Human::parseSkinNBT($nbt), $nbt);
-            }, ["TopVoteEntity"]);
+        $this->getServer()->getPluginManager()->registerEvents($this, $this);
+        EntityFactory::getInstance()->register(TopVoteEntity::class, function ($world, $nbt): TopVoteEntity {
+            return new TopVoteEntity(EntityDataHelper::parseLocation($nbt, $world), Human::parseSkinNBT($nbt), $nbt);
+        }, ["TopVoteEntity"]);
 
-            $this->getScheduler()->scheduleRepeatingTask(new ClosureTask(function (): void {
-                foreach (Server::getInstance()->getWorldManager()->getWorlds() as $world) {
-                    foreach ($world->getEntities() as $entity) {
-                        if ($entity instanceof TopVoteEntity) {
-                            $entity->setNameTagAlwaysVisible(true);
-                        }
+        $this->getScheduler()->scheduleRepeatingTask(new ClosureTask(function (): void {
+            foreach (Server::getInstance()->getWorldManager()->getWorlds() as $world) {
+                foreach ($world->getEntities() as $entity) {
+                    if ($entity instanceof TopVoteEntity) {
+                        $entity->setNameTagAlwaysVisible(true);
                     }
                 }
-            }), 20);
+            }
+        }), 20);
 
-            $this->getScheduler()->scheduleRepeatingTask(new ClosureTask(function (): void {
-                foreach (Server::getInstance()->getWorldManager()->getWorlds() as $world) {
-                    foreach ($world->getEntities() as $entity) {
-                        if ($entity instanceof TopVoteEntity) {
-                            $nameTag = $entity->getNameTag();
-                            $top = str_starts_with($entity->getNameTag(), "§b#") ? 1 : (str_starts_with($entity->getNameTag(), "§6#") ? 2 : (str_starts_with($entity->getNameTag(), "§a#") ? 3 : 0));
-                            if ($top > 0)
-                                $this->updateEntity($entity, $top);
-                        }
+        $this->getScheduler()->scheduleRepeatingTask(new ClosureTask(function (): void {
+            foreach (Server::getInstance()->getWorldManager()->getWorlds() as $world) {
+                foreach ($world->getEntities() as $entity) {
+                    if ($entity instanceof TopVoteEntity) {
+                        $nameTag = $entity->getNameTag();
+                        $top = str_starts_with($entity->getNameTag(), "§b#") ? 1 : (str_starts_with($entity->getNameTag(), "§6#") ? 2 : (str_starts_with($entity->getNameTag(), "§a#") ? 3 : 0));
+                        if ($top > 0)
+                            $this->updateEntity($entity, $top);
                     }
                 }
-            }), $this->getConfig()->get("update-period", 20 * 60 * 5));
-        }
+            }
+        }), $this->getConfig()->get("update-period", 20 * 60 * 5));
     }
 
     /**
@@ -116,7 +115,7 @@ class Loader extends PluginBase implements Listener
         if (
             !$sender instanceof Player &&
             $command->getName() !== "topvote" &&
-            !$sender->hasPermission("topvote.cmd") &&
+            !$sender->hasPermission("topvotenpc.topvote.cmd") &&
             count($args) < 1
         )
             return false;
