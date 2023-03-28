@@ -22,6 +22,7 @@ use pocketmine\player\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
+use pocketmine\utils\Internet;
 use pocketmine\utils\SingletonTrait;
 
 /**
@@ -45,17 +46,12 @@ class Loader extends PluginBase implements Listener
     public function getVoters(): array|int
     {
         $key = $this->getConfig()->get("key");
-        $context = stream_context_create(
-            array(
-                'http' => array(
-                    'method' => 'GET',
-                    'header' => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36\r\n"
-                )
-            )
-        );
-        $json_data = file_get_contents("https://minecraftpocket-servers.com/api/?object=servers&element=voters&month=current&format=json&limit=3&key=$key", false, $context);
-
-        return ($json_data !== "Error: server key not found") ? $data = json_decode($json_data, true)["voters"] : self::ERR_NO_KEY;
+        $json_data = Internet::getURL("https://minecraftpocket-servers.com/api/?object=servers&element=voters&month=current&format=json&limit=3&key=$key");
+        if($json_data !== null){
+            return ($json_data->getBody() !== "Error: server key not found") ? $data = json_decode($json_data->getBody(), true)["voters"] : self::ERR_NO_KEY;
+        }
+        return self::ERR_NO_KEY;
+        
     }
 
     public function onEnable(): void
@@ -65,9 +61,6 @@ class Loader extends PluginBase implements Listener
         $this->saveResource("config.yml");
         $this->saveResource("steve.json");
         $this->saveResource("steve.png");
-
-        if ($this->getVoters() === self::ERR_NO_KEY)
-            $this->getLogger()->warning("no server key");
 
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         EntityFactory::getInstance()->register(TopVoteEntity::class, function ($world, $nbt): TopVoteEntity {
