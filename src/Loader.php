@@ -3,6 +3,7 @@
 namespace dhnnz\TopVoteNPC;
 
 use dhnnz\TopVoteNPC\entities\TopVoteEntity;
+use dhnnz\TopVoteNPC\task\UpdateTask;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\entity\EntityDataHelper;
@@ -30,34 +31,39 @@ use pocketmine\utils\SingletonTrait;
  */
 class Loader extends PluginBase implements Listener
 {
-    use SingletonTrait;
 
     /** @var int */
     const ERR_NO_KEY = 0;
+
+    private static Loader $instance;
 
 
     /** @var array */
     public array $setup = [];
 
+    public array $voters = [];
+
     /**
      * Summary of getVoters
-     * @return array|int
+     * @return array
      */
-    public function getVoters(): array|int
+    public function getVoters(): array
     {
-        $key = $this->getConfig()->get("key");
-        $json_data = Internet::getURL("https://minecraftpocket-servers.com/api/?object=servers&element=voters&month=current&format=json&limit=3&key=$key");
-        if($json_data !== null){
-            return ($json_data->getBody() !== "Error: server key not found") ? $data = json_decode($json_data->getBody(), true)["voters"] : self::ERR_NO_KEY;
-        }
-        return self::ERR_NO_KEY;
+        return $this->voters;
         
+    }
+
+    public function onLoad(): void{
+        self::$instance = $this;
+    }
+
+    public static function getInstance(): self
+    {
+        return self::$instance;
     }
 
     public function onEnable(): void
     {
-        self::setInstance($this);
-
         $this->saveResource("config.yml");
         $this->saveResource("steve.json");
         $this->saveResource("steve.png");
@@ -68,16 +74,7 @@ class Loader extends PluginBase implements Listener
         }, ["TopVoteEntity"]);
 
         $this->getScheduler()->scheduleRepeatingTask(new ClosureTask(function (): void {
-            foreach (Server::getInstance()->getWorldManager()->getWorlds() as $world) {
-                foreach ($world->getEntities() as $entity) {
-                    if ($entity instanceof TopVoteEntity) {
-                        $entity->setNameTagAlwaysVisible(true);
-                    }
-                }
-            }
-        }), 20);
-
-        $this->getScheduler()->scheduleRepeatingTask(new ClosureTask(function (): void {
+            $this->getServer()->getAsyncPool()->submitTask(new UpdateTask($this->getConfig()->get("key")));
             foreach (Server::getInstance()->getWorldManager()->getWorlds() as $world) {
                 foreach ($world->getEntities() as $entity) {
                     if ($entity instanceof TopVoteEntity) {
@@ -88,7 +85,7 @@ class Loader extends PluginBase implements Listener
                     }
                 }
             }
-        }), $this->getConfig()->get("update-period", 20 * 60 * 5));
+        }), 20);
     }
 
     /**
@@ -108,12 +105,6 @@ class Loader extends PluginBase implements Listener
             count($args) < 1
         )
             return false;
-
-        if ($this->getVoters() === self::ERR_NO_KEY) {
-            $sender->sendMessage("no server key");
-            $this->getLogger()->warning("no server key");
-            return false;
-        }
 
         switch ($args[0]) {
             case 'spawn':
