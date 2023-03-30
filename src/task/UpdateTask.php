@@ -1,6 +1,7 @@
 <?php
 namespace dhnnz\TopVoteNPC\task;
 
+use dhnnz\TopVoteNPC\entities\TopVoteEntity;
 use dhnnz\TopVoteNPC\Loader;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
@@ -58,6 +59,16 @@ class UpdateTask extends AsyncTask
         if ($this->getResult()['success'] === true) {
             if ($inst->getVoters() !== $this->getResult()['voters']) {
                 $inst->voters = $this->getResult()['voters'];
+                foreach (Server::getInstance()->getWorldManager()->getWorlds() as $world) {
+                    foreach ($world->getEntities() as $entity) {
+                        if ($entity instanceof TopVoteEntity) {
+                            $nameTag = $entity->getNameTag();
+                            $top = str_starts_with($entity->getNameTag(), "§b#") ? 1 : (str_starts_with($entity->getNameTag(), "§6#") ? 2 : (str_starts_with($entity->getNameTag(), "§a#") ? 3 : 0));
+                            if ($top > 0)
+                                $inst->updateEntity($entity, $top);
+                        }
+                    }
+                }
             }
         } else {
             $inst->getLogger()->error('Error: ' . $this->getResult()['error']);

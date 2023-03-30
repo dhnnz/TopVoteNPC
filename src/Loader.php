@@ -80,10 +80,8 @@ class Loader extends PluginBase implements Listener
             foreach (Server::getInstance()->getWorldManager()->getWorlds() as $world) {
                 foreach ($world->getEntities() as $entity) {
                     if ($entity instanceof TopVoteEntity) {
-                        $nameTag = $entity->getNameTag();
-                        $top = str_starts_with($entity->getNameTag(), "§b#") ? 1 : (str_starts_with($entity->getNameTag(), "§6#") ? 2 : (str_starts_with($entity->getNameTag(), "§a#") ? 3 : 0));
-                        if ($top > 0)
-                            $this->updateEntity($entity, $top);
+                        $entity->setNameTagAlwaysVisible(true);
+                        $entity->setNameTagVisible(true);
                     }
                 }
             }
