@@ -4,6 +4,7 @@ namespace dhnnz\TopVoteNPC;
 
 use dhnnz\TopVoteNPC\entities\TopVoteEntity;
 use dhnnz\TopVoteNPC\task\UpdateTask;
+use Ifera\ScoreHud\factory\listener\FactoryListener;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\entity\EntityDataHelper;
@@ -50,10 +51,11 @@ class Loader extends PluginBase implements Listener
     public function getVoters(): array
     {
         return $this->voters;
-        
+
     }
 
-    public function onLoad(): void{
+    public function onLoad(): void
+    {
         self::$instance = $this;
     }
 
@@ -210,9 +212,17 @@ class Loader extends PluginBase implements Listener
     {
         $topPlayerName = $this->getPlayerByTop($top);
         $topVotes = $this->getPlayerByTop($top, "votes");
-        $topPlayer = Server::getInstance()->getPlayerExact($topPlayerName);
 
-        $skin = ($topPlayer instanceof Player) ? $topPlayer->getSkin() : false;
+        $server = Server::getInstance();
+        $topPlayer = $server->getPlayerExact($topPlayerName);
+        $npcNametag = substr($npc->getNameTag(), 6, strpos($npc->getNameTag(), " §b- ") - 6);
+
+        if ($npcNametag == $topPlayerName) {
+            $skin = $topPlayer ? $topPlayer->getSkin() : false;
+        } else {
+            $skin = $topPlayer ? $topPlayer->getSkin() : $this->defaultSkin();
+        }
+
         $nametag = match ($top) {
             1 => "§b#1 " . $topPlayerName . " §b- " . (int) $topVotes . " votes",
             2 => "§6#2 " . $topPlayerName . " §b- " . (int) $topVotes . " votes",
